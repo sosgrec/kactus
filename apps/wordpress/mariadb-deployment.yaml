@@ -15,27 +15,47 @@ spec:
       labels:
         app: mariadb
     spec:
+      securityContext:
+        fsGroup: 999
+
       containers:
-        - name: mariadb
-          image: mariadb:11
-          ports:
-            - containerPort: 3306
-          envFrom:
-            - secretRef:
-                name: wp-secrets
-          volumeMounts:
-            - name: db-data
-              mountPath: /var/lib/mysql
+       env:
+        name: MARIADB_DATABASE
+        valueFrom:
+          secretKeyRef:
+            name: wp-secrets
+            key: MYSQL_DATABASE
+        name: MARIADB_USER
+        valueFrom:
+          secretKeyRef:
+            name: wp-secrets
+            key: MYSQL_USER
+        name: MARIADB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: wp-secrets
+            key: MYSQL_PASSWORD
+        name: MARIADB_ROOT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: wp-secrets
+            key: MYSQL_ROOT_PASSWORD
+
+    volumeMounts:
+        name: db-data
+        mountPath: /var/lib/mysql
+
+              
           startupProbe:
             tcpSocket:
               port: 3306
             periodSeconds: 5
-            failureThreshold: 30   
+            failureThreshold: 60
               
           readinessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 15
+            initialDelaySeconds: 20
             periodSeconds: 5
             failureThreshold: 6
             timeoutSeconds: 2
@@ -45,7 +65,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 10
             failureThreshold: 6
             timeoutSeconds: 2
