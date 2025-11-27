@@ -17,14 +17,6 @@ spec:
     spec:
       containers:
         - name: mariadb
-            resources:
-              requests:
-                cpu: "100m"
-                memory: "256Mi"
-              limits:
-                cpu: "500m"
-                memory: "512Mi"
-
           image: mariadb:11
           ports:
             - containerPort: 3306
@@ -35,13 +27,22 @@ spec:
             - name: db-data
               mountPath: /var/lib/mysql
           readinessProbe:
-            tcpSocket: { port: 3306 }
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
-            tcpSocket: { port: 3306 }
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 20
             periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
       volumes:
         - name: db-data
           persistentVolumeClaim:
