@@ -15,43 +15,51 @@ spec:
       labels:
         app: mariadb
     spec:
+      # Donne l’accès au volume au groupe mysql (999)
       securityContext:
         fsGroup: 999
 
       containers:
-       env:
-        name: MARIADB_DATABASE
-        valueFrom:
-          secretKeyRef:
-            name: wp-secrets
-            key: MYSQL_DATABASE
-        name: MARIADB_USER
-        valueFrom:
-          secretKeyRef:
-            name: wp-secrets
-            key: MYSQL_USER
-        name: MARIADB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: wp-secrets
-            key: MYSQL_PASSWORD
-        name: MARIADB_ROOT_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: wp-secrets
-            key: MYSQL_ROOT_PASSWORD
+        - name: mariadb
+          image: mariadb:11
+          ports:
+            - containerPort: 3306
 
-    volumeMounts:
-        name: db-data
-        mountPath: /var/lib/mysql
+          # Variables explicites attendues par l'image MariaDB
+          env:
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: wp-secrets
+                  key: MYSQL_DATABASE
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: wp-secrets
+                  key: MYSQL_USER
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wp-secrets
+                  key: MYSQL_PASSWORD
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wp-secrets
+                  key: MYSQL_ROOT_PASSWORD
 
-              
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/mysql
+
+          # Laisse le temps à l'initialisation du datadir
           startupProbe:
             tcpSocket:
               port: 3306
             periodSeconds: 5
-            failureThreshold: 60
-              
+            failureThreshold: 60   # ~5 min
+
+          # Prêt quand 3306 écoute
           readinessProbe:
             tcpSocket:
               port: 3306
@@ -60,8 +68,7 @@ spec:
             failureThreshold: 6
             timeoutSeconds: 2
 
-
-            
+          # Ne tue pas trop tôt
           livenessProbe:
             tcpSocket:
               port: 3306
@@ -70,7 +77,6 @@ spec:
             failureThreshold: 6
             timeoutSeconds: 2
 
-            
           resources:
             requests:
               cpu: "100m"
@@ -78,6 +84,7 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+
       volumes:
         - name: db-data
           persistentVolumeClaim:
