@@ -10,10 +10,11 @@ metadata:
     app.kubernetes.io/component: frontend   # (ou database pour mariadb)
 spec:
   type: LoadBalancer
+  publishNotReadyAddresses: true
   selector:
     app: wordpress
   ports:
     - name: http
       port: 80
       targetPort: 80
-      nodePort: 30081   # NodePort dédié pour WP
+      #nodePort: 30081   # NodePort dédié pour WP
