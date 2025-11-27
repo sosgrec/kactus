@@ -88,4 +88,4 @@ spec:
       volumes:
         - name: db-data
           persistentVolumeClaim:
-            claimName: mariadb-pvc
+            claimName: mariadb-pvc-2
