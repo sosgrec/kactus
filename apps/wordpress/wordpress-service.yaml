@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: blog
     app.kubernetes.io/component: frontend   # (ou database pour mariadb)
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: wordpress
   ports:
