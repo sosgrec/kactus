@@ -9,11 +9,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: hello-minikube
+      app: hello-minikube        # ← EXACTEMENT la même clé/valeur que le Live
   template:
     metadata:
       labels:
-        app: hello-minikube
+        app: hello-minikube      # ← doit matcher le selector
     spec:
       containers:
         - name: nginx
@@ -32,4 +32,3 @@ spec:
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 10
-
