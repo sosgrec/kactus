@@ -15,18 +15,21 @@ spec:
       labels:
         app: mariadb
     spec:
-      # Donne l’accès au volume au groupe mysql (999)
       securityContext:
-        fsGroup: 999
-
+        fsGroup: 999        # accès disque pour l’utilisateur mysql (uid 999)
       containers:
         - name: mariadb
           image: mariadb:11
           ports:
             - containerPort: 3306
-
-          # Variables explicites attendues par l'image MariaDB
           env:
+            # OBLIGATOIRE pour démarrer MariaDB
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wp-secrets
+                  key: MYSQL_PASSWORD_ROOT   # <-- adapte si ta clé root a un autre nom
+            # Ces 3 là sont optionnels mais utiles pour WP
             - name: MARIADB_DATABASE
               valueFrom:
                 secretKeyRef:
@@ -42,42 +45,33 @@ spec:
                 secretKeyRef:
                   name: wp-secrets
                   key: MYSQL_PASSWORD
-            - name: MARIADB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: wp-secrets
-                  key: MYSQL_ROOT_PASSWORD
-
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/mysql
-
-          # Laisse le temps à l'initialisation du datadir
+          # Probes plus permissives au boot
           startupProbe:
             tcpSocket:
               port: 3306
             initialDelaySeconds: 20
             periodSeconds: 5
-            failureThreshold: 30   # ~5 min
-
-          # Prêt quand 3306 écoute
+            failureThreshold: 30     # ~2min30 pour le tout premier démarrage
           readinessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 20
-            periodSeconds: 5
-            failureThreshold: 6
-            timeoutSeconds: 2
-
-          # Ne tue pas trop tôt
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  mysqladmin ping -h 127.0.0.1 \
+                    ${MARIADB_USER:+-u$MARIADB_USER} \
+                    ${MARIADB_PASSWORD:+-p$MARIADB_PASSWORD}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 12
           livenessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 120
+            initialDelaySeconds: 45
             periodSeconds: 10
-            failureThreshold: 6
-            timeoutSeconds: 2
-
           resources:
             requests:
               cpu: "100m"
@@ -85,8 +79,7 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
-
       volumes:
         - name: db-data
           persistentVolumeClaim:
-            claimName: mariadb-pvc-2
+            claimName: mariadb-pvc   # <-- garde le nom exact de ton PVC
