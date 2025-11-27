@@ -26,16 +26,31 @@ spec:
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/mysql
+          startupProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 5
+            failureThreshold: 30   
+              
           readinessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 2
+
+
+            
           livenessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 20
+            initialDelaySeconds: 90
             periodSeconds: 10
+            failureThreshold: 6
+            timeoutSeconds: 2
+
+            
           resources:
             requests:
               cpu: "100m"
