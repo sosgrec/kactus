@@ -5,6 +5,9 @@ metadata:
   namespace: wordpress
   labels:
     app: wordpress
+    app.kubernetes.io/name: wordpress
+    app.kubernetes.io/part-of: blog
+    app.kubernetes.io/component: frontend   # (ou database pour mariadb)
 spec:
   type: NodePort
   selector:
