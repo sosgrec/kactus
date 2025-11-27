@@ -43,15 +43,17 @@ spec:
               mountPath: /var/www/html
           readinessProbe:
             httpGet:
-              path: /wp-admin/install.php
+              path: /
               port: 80
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 10
+            failureThreshold: 12
+            
           livenessProbe:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 40
+            initialDelaySeconds: 60
             periodSeconds: 10
           resources:
             requests:
